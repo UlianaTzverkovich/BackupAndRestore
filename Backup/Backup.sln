@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32519.379
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backup", "Backup\Backup.csproj", "{215B3FC0-8789-485E-8F11-4562B5F3C169}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{215B3FC0-8789-485E-8F11-4562B5F3C169}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{215B3FC0-8789-485E-8F11-4562B5F3C169}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{215B3FC0-8789-485E-8F11-4562B5F3C169}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{215B3FC0-8789-485E-8F11-4562B5F3C169}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CDC35A9F-0F24-485C-951A-25AB7A26D56D}
+	EndGlobalSection
+EndGlobal
