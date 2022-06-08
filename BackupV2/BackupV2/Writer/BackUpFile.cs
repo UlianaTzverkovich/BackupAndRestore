@@ -14,8 +14,7 @@ namespace BackupV2.Writer
             FileStream BakFileStream = File.Open(pathBack, FileMode.Create);
             Writer = new BinaryWriter(BakFileStream);
         }
-
-       public void WriteServiceInfo(int NumberOfFiles)
+        public void WriteServiceInfo(int NumberOfFiles)
         {
             Writer.Write(NumberOfFiles.ToString());
         }

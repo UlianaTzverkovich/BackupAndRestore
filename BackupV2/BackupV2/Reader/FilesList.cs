@@ -8,14 +8,13 @@ namespace BackupV2.Reader
 {
     public class FilesList
     {
-        public List<FileToRead>  FileList { get; set; }
+        public List<FileToRead> FileList { get; set; }
 
-        public FilesList(string[] files, string SearchDirectory)
+        public FilesList(string[] Files, string SearchDirectory)
         {
             FileList = new List<FileToRead>();
-            foreach (string FileName in files)
+            foreach (string FileName in Files)
             {
-
                 string ShortFileName = FileName.Substring(SearchDirectory.Length);
 
                 FileToRead file1 = new FileToRead();
@@ -24,11 +23,9 @@ namespace BackupV2.Reader
                 FileInfo FileInfo = new FileInfo(FileName);
                 file1.FileSize = FileInfo.Length;
 
-
                 FileList.Add(file1);
-               
             }
         }
     }
- }
+}
 

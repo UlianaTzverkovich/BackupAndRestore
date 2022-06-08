@@ -1,36 +1,34 @@
-﻿
+﻿using BackupV2.Writer;
+using BackupV2.Reader;
+using BackupV2;
 try
-{   
-    
-    BackupV2.Parameters Params = new(args);
-    BackupV2.Writer.BackUpFile FileBackUp = new(Params.BackUpFileName); // объект файла бекапа
+{      
+    Parameters parameters = new(args);
+    BackUpFile fileBackUp = new(parameters.BackUpFileName); // объект файла бекапа
 
-    EnumerationOptions EnumerationOptions = new EnumerationOptions();
-    EnumerationOptions.RecurseSubdirectories = Params.Recursive;
+    EnumerationOptions enumerationOptions = new EnumerationOptions();
+    enumerationOptions.RecurseSubdirectories = parameters.Recursive;
 
-    string[] files = Directory.GetFiles(Params.SearchDirectory, Params.SearchMask, EnumerationOptions);
-    BackupV2.Reader.FilesList FilesList = new(files, Params.SearchDirectory);
+    string[] files = Directory.GetFiles(parameters.SearchDirectory, parameters.SearchMask, enumerationOptions);
+    FilesList filesList = new(files, parameters.SearchDirectory);
 
-    FileBackUp.WriteServiceInfo(FilesList.FileList.Count);
+    fileBackUp.WriteServiceInfo(filesList.FileList.Count);
 
-    BackupV2.Reader.Threads Threads = new BackupV2.Reader.Threads(FilesList.FileList, Params, FileBackUp);    
+    Threads threads = new Threads(filesList.FileList, parameters, fileBackUp);    
 
-    Thread ReadFile = new Thread(Threads.ReadFromFile);
-    ReadFile.Start();
+    Thread readFile = new Thread(threads.ReadFromFile);
+    readFile.Start();
 
-    Thread WriteFile = new Thread(Threads.WriteToFile);
-    WriteFile.Start();
-
-    while (WriteFile.IsAlive || ReadFile.IsAlive)
-   { 
-        
-   };
-        FileBackUp.Writer.Dispose();
+    Thread writeFile = new Thread(threads.WriteToFile);
+    writeFile.Start();
+   
+    writeFile.Join();
+    fileBackUp.Writer.Dispose();
 }
 
 catch (Exception error)
 {
-    BackupV2.Exeptions Exeption = new BackupV2.Exeptions (error);
+    Exeptions exeption = new Exeptions (error);
 }
 
 

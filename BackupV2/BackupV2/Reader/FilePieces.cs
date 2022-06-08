@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BackupV2.Reader
 {
-   
+
     public class FilePieces
     {
         public byte[] PieceData { get; set; } = new byte[0];
@@ -14,7 +14,7 @@ namespace BackupV2.Reader
 
         public FilePieces()
         {
-           
+
         }
     }
 }

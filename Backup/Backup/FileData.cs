@@ -14,6 +14,7 @@ namespace Backup
         string ShortFileName;
         FileStream fsSource;
         BinaryWriter BakbinWriter;
+        
 
         public FileData(int FileSize, string ShortFileName, FileStream fsSource, int SumFiles, BinaryWriter BakbinWriter)
         {
@@ -37,7 +38,7 @@ namespace Backup
         //    BakbinWriter.Write(FileSize.ToString());
         //}
 
-        public void WriteFile(long fileSize, string ShortFileName)
+        public void WriteFile()
         {
             byte[] bytes = new byte[fsSource.Length];
             int numBytesToRead = (int)fsSource.Length;

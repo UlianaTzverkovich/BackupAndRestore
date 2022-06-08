@@ -19,21 +19,18 @@ namespace BackupV2
         public int MaxMemoryUse{ get; set; } = 500; //макс. объем памяти в мегабайтах
         public int TimeToWait { get; set; } = 500; // время ожидания потоками ресурсов в мс
 
-
-
         string[] Params;
         public Parameters(string[] Params)
         {
             this.Params = Params;
             ParametersProcessing();
         }
-
         private void ParametersProcessing()
         {
             int paramCount = Params.Length; //если их всего 2 , то доп параметров нет. Если параметров < 2, то прерываем выполнение программы
             if (paramCount < 2)
             {
-                //прервать программу
+                Environment.Exit(1);
             }
             int position = Params[0].IndexOf("*."); //определяю передана ли маска в параметр
             if (position < 0)
@@ -50,11 +47,11 @@ namespace BackupV2
 
             if (paramCount > 2) //перебор массива параметров TODO: вынести в  метод
             {
-                int i = paramCount;
-                while (i > 1)
+                int paramsToCount = paramCount;
+                while (paramsToCount > 1)
                 {
-                    i--;
-                    string param = Params[i];
+                    paramsToCount--;
+                    string param = Params[paramsToCount];
                     if (param == "--recursive")
                     {
                         Recursive = true;
@@ -67,7 +64,7 @@ namespace BackupV2
                     {
                         Encryption = true;
 
-                        Password = Params[i++];
+                        Password = Params[paramsToCount++];
                     }
                 }
             }

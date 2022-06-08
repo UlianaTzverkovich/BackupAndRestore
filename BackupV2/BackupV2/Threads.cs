@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BackupV2.Reader;
 
-namespace BackupV2.Reader
+namespace BackupV2
 {
     public class Threads
     {
         List<FileToRead> FileList;
-        int StandartPieceSize;
         List<FilePieces> FilePieces = new List<FilePieces>();
         Writer.BackUpFile BackUpFile;
         Parameters Params;
+        int StandartPieceSize;
         float MemoryInUse = 0;
         float ByteToMB = 1048576;
-
         public Threads(List<FileToRead> fileList, Parameters Params, Writer.BackUpFile backUpFile)
         {
             this.FileList = fileList;
@@ -23,68 +23,66 @@ namespace BackupV2.Reader
             this.BackUpFile = backUpFile;
             this.Params = Params;
         }
-
         public void ReadFromFile()
         {
-            int PieceToRead;
+            int pieceToRead;
             foreach (FileToRead currentfile in FileList)
             {
-                long PieceCount = currentfile.FileSize / StandartPieceSize + 1;
-                long LastPieceSize = currentfile.FileSize - (PieceCount - 1) * StandartPieceSize;
+                long pieceCount = currentfile.FileSize / StandartPieceSize + 1;
+                long lastPieceSize = currentfile.FileSize - (pieceCount - 1) * StandartPieceSize;
                 FileStream filestream = File.Open(currentfile.FullFileName, FileMode.Open);
-                BinaryReader FileReader = new BinaryReader(filestream);
+                BinaryReader fileReader = new BinaryReader(filestream);
 
-                for (int i = 1; i <= PieceCount; i++)
+                for (int i = 1; i <= pieceCount; i++)
                 {
-                    FilePieces Piece = new FilePieces();
+                    FilePieces piece = new FilePieces();
 
-                    if (i == PieceCount) { PieceToRead = (int)LastPieceSize; }
-                    else { PieceToRead = StandartPieceSize; }
+                    if (i == pieceCount) { pieceToRead = (int)lastPieceSize; }
+                    else { pieceToRead = StandartPieceSize; }
 
-                    byte[] FileBinaryData = FileReader.ReadBytes(PieceToRead);
+                    byte[] FileBinaryData = fileReader.ReadBytes(pieceToRead);
 
-                    Piece.PieceData = FileBinaryData;
-                    if (!Params.Encryption & !Params.Archive) 
+                    piece.PieceData = FileBinaryData;
+                    if (!Params.Encryption & !Params.Archive)
                     {
-                        Piece.AllowToWrite = true; //разрешение на запись в конце обработки (архивация,шифрование)
-                    }                    
-                    while(MemoryInUse >= Params.MaxMemoryUse) { Thread.Sleep(Params.TimeToWait); } //ожидание освобождения памяти
-                    FilePieces.Add(Piece);
-                    MemoryInUse = MemoryInUse + PieceToRead / ByteToMB;
- 
+                        piece.AllowToWrite = true; //разрешение на запись в конце обработки (архивация,шифрование)
+                    }
+                    while (MemoryInUse >= Params.MaxMemoryUse) { Thread.Sleep(Params.TimeToWait); } //ожидание освобождения памяти
+                    FilePieces.Add(piece);
+                    MemoryInUse = MemoryInUse + pieceToRead / ByteToMB;
+
                 }
             }
         }
-
         public void WriteToFile()
         {
-            int Pos = 0;
-            int IndexArrayCorrection = 1;
+            int pos = 0;
+            int indexArrayCorrection = 1;
             foreach (FileToRead currentfile in FileList)
             {
-                long PieceCount = currentfile.FileSize / StandartPieceSize;
-                if (PieceCount * StandartPieceSize < currentfile.FileSize)
+                long pieceCount = currentfile.FileSize / StandartPieceSize;
+                if (pieceCount * StandartPieceSize < currentfile.FileSize)
                 {
-                    PieceCount++;
-                    
+                    pieceCount++;
+
                 };
-                int PieceCountInt = (int)PieceCount;
+                int pieceCountInt = (int)pieceCount;
                 BackUpFile.WriteServiceInfoForFile(currentfile);
 
-                for (int i = Pos; i < PieceCountInt + Pos; i++)
-                {                    
-                    while (i > FilePieces.Count - IndexArrayCorrection ) { Thread.Sleep(Params.TimeToWait); }; //кусочек несчитался 
+                for (int i = pos; i < pieceCountInt + pos; i++)
+                {
+                    while (i > FilePieces.Count - indexArrayCorrection) { Thread.Sleep(Params.TimeToWait); }; //кусочек несчитался 
                     while (!FilePieces[i].AllowToWrite) { Thread.Sleep(Params.TimeToWait); }; //кусочек недобработался 
                     BackUpFile.Writer.Write(FilePieces[i].PieceData);
                     float PieceSize = FilePieces[i].PieceData.Length;
                     FilePieces[i].PieceData = new byte[0]; // освобождение памяти
                     MemoryInUse = MemoryInUse - PieceSize / ByteToMB;
                 }
-                Pos = Pos + PieceCountInt;
+                pos = pos + pieceCountInt;
 
             }
         }
 
-        
+
     }
 }

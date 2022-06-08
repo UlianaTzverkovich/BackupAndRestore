@@ -54,7 +54,7 @@ try
         {
             string ShortFileName = file.Substring(0, FileBackUp.pathSearch.Length);
             Backup.FileData FileData = new Backup.FileData(file.Length,ShortFileName, BakFileStream, FileBackUp.SumFiles, BakbinWriter); 
-            Thread WriteToBackUp = new Thread(FileBackUp.WriteFile(fsSource));
+            Thread WriteToBackUp = new Thread(FileData.WriteFile());
             WriteToBackUp.Start();
             // Read the source file into a byte array.
             
@@ -67,10 +67,9 @@ try
     //BakFileStream.Dispose();
 }
 
-
-catch (Exception e)
+catch (Exception error)
 {
-    Console.WriteLine("The process failed: {0}", e.ToString());
+    Console.WriteLine("The process failed: {0}", error.ToString());
 }
    
     
