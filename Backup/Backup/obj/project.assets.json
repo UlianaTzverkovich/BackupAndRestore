@@ -8,19 +8,19 @@
     "net6.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Ulyan\\.nuget\\packages\\": {}
+    "C:\\Users\\Uliana\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Ulyan\\source\\repos\\Backup\\Backup\\Backup.csproj",
+      "projectUniqueName": "C:\\Users\\Uliana\\Documents\\GitHub\\BackupAndRestore\\Backup\\Backup\\Backup.csproj",
       "projectName": "Backup",
-      "projectPath": "C:\\Users\\Ulyan\\source\\repos\\Backup\\Backup\\Backup.csproj",
-      "packagesPath": "C:\\Users\\Ulyan\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Ulyan\\source\\repos\\Backup\\Backup\\obj\\",
+      "projectPath": "C:\\Users\\Uliana\\Documents\\GitHub\\BackupAndRestore\\Backup\\Backup\\Backup.csproj",
+      "packagesPath": "C:\\Users\\Uliana\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Uliana\\Documents\\GitHub\\BackupAndRestore\\Backup\\Backup\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Ulyan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Uliana\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

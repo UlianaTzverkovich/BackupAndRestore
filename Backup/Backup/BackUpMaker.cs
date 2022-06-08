@@ -9,7 +9,7 @@ namespace BackUpMaker
     public class BackUp //класс объекта создаваемого объекта файла бекапа 
     {
         //пока все с модификатором public, думала над internal , для доступа только в рамках этой сборки
-        public string pathSearch { get; set; } = @"с:\"; 
+        public string pathSearch { get; set; } = @"с:\";
         public string mask { get; set; } = "*.*";// маска поиска файлов
         public bool recursive { get; set; } = false;// поле значения рекурсивного обхода
         public bool compress { get; set; } = false; // поле значения архивирования
@@ -19,11 +19,17 @@ namespace BackUpMaker
 
             set { encryptKey = value; }
         }
+        public int SumFiles { get; set; } // количество файло в бекапе
+
+        public bool WriteStreamOpen { get; set; } = false; //флаг открыт/закрыт стрим на запись
+
         string pathBack;
+        BinaryWriter BakbinWriter;
         public BackUp(string pathBack)
         {
             this.pathBack = pathBack;
         }
+        
     }
-  
+
 }

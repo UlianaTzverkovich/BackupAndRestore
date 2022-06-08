@@ -1,113 +1,80 @@
-﻿// до 6 версии  пространство имен перед классом объявлялось, сейчас пока так написала, потом найду
-// так как параметров входных потенциально может больше, думала как проще сделать маштабируемость работы с ними
-//решила сделать отдельным объектом создоваемый файл бекапа,а параметры - это свойства.
-//Планирую вынести все в один метод класса BackUP, где аргументы будут все входящие параметры  
-//и в main вызывать этот один метод
-//TODO: добавить исключение , если параметров нет
-BackUpMaker.BackUp fileBackUp = new(args[1]); 
-
-int position = args[0].IndexOf("*."); //определяю переда ли маска в параметр
-if (position < 0)
+﻿
+try
 {
-    fileBackUp.pathSearch = args[0];
-}
-else 
-{
-    fileBackUp.pathSearch = args[0].Substring(0, position);
-    fileBackUp.mask = args[0].Substring(position);
-}
+    BackUpMaker.BackUp FileBackUp = new(args[1]);
 
-int paramCount = args.Length; //если их всего 2 , то доп параметров нет
-if (paramCount > 2) //перебор массива параметров TODO: вынести в  метод
-{ int i = paramCount;
-    while (i > 2)
+    int position = args[0].IndexOf("*."); //определяю переда ли маска в параметр
+    if (position < 0)
     {
-        i--;
-        string param = args[i];
-        if (param == "--recursive")
-        {
-            fileBackUp.recursive = true;
-        }
-        else if (param == "--compress")
-        {
-            fileBackUp.compress = true;
-        }
-        else
-        {
-            fileBackUp.encryptKey = args[i++];
-        }
+        FileBackUp.pathSearch = args[0];
     }
-}
-EnumerationOptions EnumerationOptions = new EnumerationOptions();
-EnumerationOptions.RecurseSubdirectories = fileBackUp.recursive;
-string[] files = Directory.GetFiles(fileBackUp.pathSearch, fileBackUp.mask, EnumerationOptions);
-//string[] files = GetFiles(searchPattern, SearchOption.TopDirectoryOnly);
-//string pathNew = args[1]; //имя файла бекапа
-
-//using (FileStream fsNew = new FileStream(pathNew,
-//  FileMode.Create, FileAccess.Write))
-
-FileStream bakfilestream = File.Open(args[1],FileMode.Create);
-BinaryWriter bakbinWriter = new BinaryWriter(bakfilestream);
-int arFilesLength = files.Length;
-bakbinWriter.Write(arFilesLength.ToString());
-//переменные для разделения инфромации о записанных данных
-//const char nextfile = '>'; //после этого символа идет имя файла
-//const char nextfilesize = '<';//после этого символа информация о размере файла
-
-foreach (string file in files)
+    else
     {
-        try
+        FileBackUp.pathSearch = args[0].Substring(0, position);
+        FileBackUp.mask = args[0].Substring(position);
+    }
+
+    int paramCount = args.Length; //если их всего 2 , то доп параметров нет
+    if (paramCount > 2) //перебор массива параметров TODO: вынести в  метод
+    {
+        int i = paramCount;
+        while (i > 2)
         {
-
-            using (FileStream fsSource = new FileStream(file,
-                FileMode.Open, FileAccess.Read))
+            i--;
+            string param = args[i];
+            if (param == "--recursive")
             {
-                long fileSize = fsSource.Length;
-            //пишу имя файла и его размер в байтах,разделяя спец. символами (которые не могут быть в имени файла)
-            //выбрала писать строкой т.к. писать например размер файла 
-            //метод Write пишет служебную инфу о длине строки перед самой строкой. 
-            //Буду использовать метод ReadString при разархивировании, который считает строку ровно той длины, которой записала. 
-            //Разделители не нужны.
-            bakbinWriter.Write(file + fileSize); 
-
-                // Read the source file into a byte array.
-                byte[] bytes = new byte[fsSource.Length];
-                int numBytesToRead = (int)fsSource.Length;
-                int numBytesRead = 0;
-                while (numBytesToRead > 0)
-                {
-                    // Read may return anything from 0 to numBytesToRead.
-                    int n = fsSource.Read(bytes, numBytesRead, numBytesToRead);
-
-                    // Break when the end of the file is reached.
-                    if (n == 0)
-                        break;
-
-                    numBytesRead += n;
-                    numBytesToRead -= n;
-                }
-                numBytesToRead = bytes.Length;
-
-                // Write the byte array to the other FileStream.    
-
-                {
-                    //fsNew.Write(bytes, 0, numBytesToRead);
-                    bakbinWriter.Write(bytes, 0, numBytesToRead);
-
-
-                }
+                FileBackUp.recursive = true;
+            }
+            else if (param == "--compress")
+            {
+                FileBackUp.compress = true;
+            }
+            else
+            {
+                FileBackUp.encryptKey = args[i++];
             }
         }
-        
-        catch (Exception e)
-        {
-            Console.WriteLine("The process failed: {0}", e.ToString());
-        }
-   
     }
-    bakbinWriter.Close();
-    bakfilestream.Close();
+    EnumerationOptions EnumerationOptions = new EnumerationOptions();
+    EnumerationOptions.RecurseSubdirectories = FileBackUp.recursive;
+
+    string[] files = Directory.GetFiles(FileBackUp.pathSearch, FileBackUp.mask, EnumerationOptions);
+
+    int ArFilesLength = files.Length;
+    FileBackUp.SumFiles = ArFilesLength;
+    FileStream BakFileStream = File.Open(args[1], FileMode.Create);
+    BinaryWriter BakbinWriter = new BinaryWriter(BakFileStream);
+   // FileBackUp.OpenStreamWrite();
+
+    foreach (string file in files)
+    {
+        using (FileStream fsSource = new FileStream(file,
+            FileMode.Open, FileAccess.Read))
+        {
+            string ShortFileName = file.Substring(0, FileBackUp.pathSearch.Length);
+            Backup.FileData FileData = new Backup.FileData(file.Length,ShortFileName, BakFileStream, FileBackUp.SumFiles, BakbinWriter); 
+            Thread WriteToBackUp = new Thread(FileBackUp.WriteFile(fsSource));
+            WriteToBackUp.Start();
+            // Read the source file into a byte array.
+            
+        }
+    }
+    //bakbinWriter.Close();
+    //bakfilestream.Close();
+    FileData.Dispose();
+    //BakbinWriter.Dispose();
+    //BakFileStream.Dispose();
+}
+
+
+catch (Exception e)
+{
+    Console.WriteLine("The process failed: {0}", e.ToString());
+}
+   
+    
+
 
         
     
