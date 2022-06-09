@@ -18,6 +18,8 @@ namespace BackupV2
         public int StandartPieceSize { get; set; } = 64000;
         public int MaxMemoryUse{ get; set; } = 500; //макс. объем памяти в мегабайтах
         public int TimeToWait { get; set; } = 500; // время ожидания потоками ресурсов в мс
+        public int MaxProcessingThreads { get; set; } = 6; // кол-во потоков на обработку данных
+
 
         string[] Params;
         public Parameters(string[] Params)
@@ -44,12 +46,13 @@ namespace BackupV2
             }
 
             BackUpFileName= Params[1];
+            //TODO проверка на права и наличие файла
 
             if (paramCount > 2) //перебор массива параметров TODO: вынести в  метод
             {
                 int paramsToCount = paramCount;
                 while (paramsToCount > 1)
-                {
+                {                   
                     paramsToCount--;
                     string param = Params[paramsToCount];
                     if (param == "--recursive")
@@ -64,7 +67,7 @@ namespace BackupV2
                     {
                         Encryption = true;
 
-                        Password = Params[paramsToCount++];
+                        Password = Params[paramsToCount + 1];
                     }
                 }
             }

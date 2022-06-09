@@ -14,9 +14,10 @@ namespace RestoreV2
         public bool Encryption { get; set; } = false;
         public string Password { get; set; } = string.Empty;
         public bool Archive { get; set; } = false;
-        public int StandartPieceSize { get; set; } = 64000;
+        public int StandartPieceSize { get; set; } = 1;
         public int MaxMemoryUse { get; set; } = 500; //макс. объем памяти в мегабайтах
         public int TimeToWait { get; set; } = 500; // время ожидания потоками ресурсов в мс
+        public int MaxProcessingThreads { get; set; } = 6; // кол-во потоков на обработку данных
 
         string[] Params;
         public Parameters(string[] Params)
@@ -25,7 +26,7 @@ namespace RestoreV2
             ParametersProcessing();
         }
         private void ParametersProcessing()
-        {
+        {            
             int paramCount = Params.Length; //если их всего 2 , то доп параметров нет. Если параметров < 2, то прерываем выполнение программы
             if (paramCount < 2)
             {
@@ -36,11 +37,11 @@ namespace RestoreV2
                 string param = Params[2];
 
                 if (param == "--password" & paramCount>3)
-                {
-                    Encryption = true;
+                {                    
                     Password = Params[3];
                 }
             }
+           
             BackUpFileName = Params[0];
             FilesCreateDirectory = Params[1];
         }

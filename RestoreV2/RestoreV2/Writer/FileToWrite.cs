@@ -11,6 +11,7 @@ namespace RestoreV2.Writer
         public string[] CatalogArray { get; set; } = new string[0];
         public string ShortFileName { get; set; } =  string.Empty;
         public long FileSize { get; set; } = 0;
+        public int PieceCount { get; set; } = 0;
         public BinaryWriter? Writer { get; set; } 
         public FileToWrite()
         {
@@ -24,6 +25,24 @@ namespace RestoreV2.Writer
         public void WriteDataToFile(byte[] data)
         {            
             if (Writer != null) { Writer.Write(data); }
+        }
+
+        public void CreateDirectories(string FilesCreateDirectory)
+        {
+            string currentDirectory = FilesCreateDirectory;
+            string pathSpliter = @"\";
+            string[] DirectoriesArray = ShortFileName.Split(pathSpliter);
+            int arrayLength = DirectoriesArray.Length;            
+            if (DirectoriesArray.Length == 1) { return; }
+            for (int dirpos = 0; dirpos < arrayLength - 1; dirpos++)
+            {  if (currentDirectory.Substring(currentDirectory.Length - 1) != pathSpliter)
+                {                   
+                    currentDirectory = currentDirectory + pathSpliter ;
+                }
+                currentDirectory = currentDirectory + DirectoriesArray[dirpos];
+                if (!Directory.Exists(currentDirectory)) { Directory.CreateDirectory(currentDirectory); }               
+            }
+
         }
     }
 }

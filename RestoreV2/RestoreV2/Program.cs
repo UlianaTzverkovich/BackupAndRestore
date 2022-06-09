@@ -4,7 +4,7 @@ try
 {
     Parameters parameters = new(args);
     BackUpFile fileBackUp = new(parameters.BackUpFileName); // объект файла бекапа
-    parameters.FilesCount = Convert.ToInt32(fileBackUp.ReadServiceInfo());   
+    fileBackUp.ReadServiceInfo(parameters);   
 
     FilesArray filesArray = new (parameters.FilesCount);
 
@@ -12,6 +12,15 @@ try
 
     Thread readFile = new Thread(threads.ReadFromFile);
     readFile.Start();
+
+    if (parameters.Archive | parameters.Encryption)
+    {
+        for (int currentThreadNum = 0; currentThreadNum < parameters.MaxProcessingThreads; currentThreadNum++)
+        {
+            Thread dataProcessing = new Thread(threads.ProcessingFilePiece);
+            dataProcessing.Start();
+        }
+    }
 
     Thread writeFile = new Thread(threads.WriteToFile);
     writeFile.Start();

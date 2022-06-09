@@ -11,6 +11,7 @@ namespace BackupV2.Reader
     {
         public byte[] PieceData { get; set; } = new byte[0];
         public bool AllowToWrite { get; set; } = false;
+        public bool Processing { get; set; } = false;
 
         public FilePieces()
         {

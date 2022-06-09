@@ -11,10 +11,18 @@ namespace BackupV2.Reader
         public long FileSize { get; set; }
         public string ShortFileName { get; set; } = string.Empty;
         public string FullFileName { get; set; } = string.Empty;
-
         public FileToRead()
         {
 
+        }
+        public long GetFilePieces(int StandartPieceSize) 
+        {
+            long pieceCount = FileSize / StandartPieceSize;
+                if (pieceCount* StandartPieceSize < FileSize)
+                {
+                    pieceCount++;
+                };
+            return pieceCount;
         }
 
     }
