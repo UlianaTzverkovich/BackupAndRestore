@@ -7,31 +7,34 @@ using RestoreV2.Writer;
 using RestoreV2.Reader;
 using System.Security.Cryptography;
 using System.IO.Compression;
+
 namespace RestoreV2
 {
     public class Threads
     {
-        FileToWrite[] FilesToWrite;
-        List<FilePieces> FilePieces = new List<FilePieces>();
+        private readonly FileToWrite[] _filesToWrite;
+        private readonly List<FilePieces> _filePieces = new List<FilePieces>();
         BackUpFile BackUpFile;
         Parameters Params;
         int StandartPieceSize;
         float MemoryInUse = 0;
         float ByteToMB = 1048576;
-        public Threads(FileToWrite[] FilesToWrite, Parameters Params, BackUpFile BackUpFile)
+
+        public Threads(FileToWrite[] filesToWrite, Parameters Params, BackUpFile BackUpFile)
         {
-            this.FilesToWrite = FilesToWrite;
+            this._filesToWrite = filesToWrite;
             this.StandartPieceSize = Params.StandartPieceSize;
             this.BackUpFile = BackUpFile;
             this.Params = Params;
         }
+
         public void ReadFromFile()
         {
             int pieceToRead = 0;
             FileToWrite currentFile;
             for (int fileCounter = 0; fileCounter < Params.FilesCount; fileCounter++)
             {
-                currentFile = FilesToWrite[fileCounter];
+                currentFile = _filesToWrite[fileCounter];
                 currentFile.ShortFileName = BackUpFile.ReadServiceInfoString();
                 currentFile.CreateDirectories(Params.FilesCreateDirectory);
                 currentFile.FileSize = Convert.ToInt64(BackUpFile.ReadServiceInfoString());
@@ -46,73 +49,94 @@ namespace RestoreV2
                     {
                         piece.AllowToWrite = true; //разрешение на запись в конце обработки (архивация,шифрование)
                     }
-                    while (MemoryInUse >= Params.MaxMemoryUse) { Thread.Sleep(Params.TimeToWait); } //ожидание освобождения памяти
-                    FilePieces.Add(piece);
-                    MemoryInUse = MemoryInUse + pieceToRead / ByteToMB;
-                }
 
+                    while (MemoryInUse >= Params.MaxMemoryUse)
+                    {
+                        Thread.Sleep(Params.TimeToWait);
+                    } //ожидание освобождения памяти
+
+                    _filePieces.Add(piece);
+                    MemoryInUse = MemoryInUse + StandartPieceSize / ByteToMB;
+                }
             }
 
             BackUpFile.Reader.Dispose();
-
         }
 
         public void ProcessingFilePiece()
         {
-            
-            Encoding u8 = Encoding.UTF8;
+            var u8 = Encoding.UTF8;
             int pos = 0;
             int indexArrayCorrection = 1;
-            foreach (FileToWrite currentFile in FilesToWrite)
+            using var compressedDataStream =
+                new MemoryStream();
+            using var decompressor =
+                new GZipStream(compressedDataStream, CompressionMode.Decompress);
+            using (Aes encryptorAes = Aes.Create())
+                
             {
-                for (int currentPiecePos = pos; currentPiecePos < currentFile.PieceCount + pos; currentPiecePos++)
+                encryptorAes.KeySize = 256;
+                byte[] bytesPassword = u8.GetBytes(Params.Password);
+                byte[] bytePassword32 = new byte[32];
+                bytesPassword.CopyTo(bytePassword32, 0);
+                encryptorAes.Key = bytePassword32;
+                encryptorAes.IV = new byte[16];
+                foreach (FileToWrite currentFile in _filesToWrite)
                 {
-                    while (currentPiecePos > FilePieces.Count - indexArrayCorrection) { Thread.Sleep(Params.TimeToWait); } //кусочек несчитался 
-                    if (FilePieces[currentPiecePos].Processing) { continue; } //кусочек уже в обработке в другом потоке
-                    FilePieces[currentPiecePos].Processing = true;
-                    if (Params.Archive | Params.Encryption)
+                    for (int currentPiecePos = pos; currentPiecePos < currentFile.PieceCount + pos; currentPiecePos++)
                     {
-                        if (Params.Encryption)
+                        while (currentPiecePos > _filePieces.Count - indexArrayCorrection)
                         {
-                            using (Aes encryptorAes = Aes.Create())
+                            Thread.Sleep(Params.TimeToWait);
+                        } //кусочек несчитался 
+
+                        if (_filePieces[currentPiecePos].Processing)
+                        {
+                            continue;
+                        } //кусочек уже в обработке в другом потоке
+
+                        _filePieces[currentPiecePos].Processing = true;
+                        if (Params.Archive | Params.Encryption)
+                        {
+                            if (Params.Encryption)
                             {
-                                encryptorAes.KeySize = 256;
-                                byte[] bytesPassword = u8.GetBytes(Params.Password);
-                                byte[] bytePassword32 = new byte[32];
-                                bytesPassword.CopyTo(bytePassword32, 0);
-                                encryptorAes.Key = bytePassword32;
-                                encryptorAes.IV = new byte[16];
-                                ICryptoTransform decryptor = encryptorAes.CreateDecryptor(encryptorAes.Key, encryptorAes.IV);
-                                using (MemoryStream decryptDataStream = new MemoryStream(FilePieces[currentPiecePos].PieceData))
+                                ICryptoTransform decryptor =
+                                    encryptorAes.CreateDecryptor(encryptorAes.Key, encryptorAes.IV);
+                                using (MemoryStream decryptDataStream =
+                                       new MemoryStream(_filePieces[currentPiecePos].PieceData))
                                 {
-                                    using (CryptoStream csDecrypt = new CryptoStream(decryptDataStream, decryptor, CryptoStreamMode.Read))
+                                    using (CryptoStream csDecrypt = new CryptoStream(decryptDataStream, decryptor,
+                                               CryptoStreamMode.Read))
                                     using (var clearDataStream = new MemoryStream())
                                     {
                                         csDecrypt.CopyTo(clearDataStream);
-                                        FilePieces[currentPiecePos].PieceData = clearDataStream.ToArray();
+                                        _filePieces[currentPiecePos].PieceData = clearDataStream.ToArray();
                                     }
                                 }
                             }
-                        }
-                        if (Params.Archive)
-                        {
-                            using (var compressedDataStream = new MemoryStream(FilePieces[currentPiecePos].PieceData))
-                                
-                            using (var decompressor = new GZipStream(compressedDataStream, CompressionMode.Decompress))
-                            using (var clearDataStream = new MemoryStream())
+
+                            if (Params.Archive)
                             {
-                               decompressor.CopyTo(clearDataStream);
-                               FilePieces[currentPiecePos].PieceData = clearDataStream.ToArray();                                
+                                compressedDataStream.SetLength(0);
+                                compressedDataStream.Write(_filePieces[currentPiecePos].PieceData, 0, _filePieces[currentPiecePos].PieceData.Length);
+                                //Console.WriteLine(compressedDataStream.Length);
+                                //_filePieces[currentPiecePos].PieceData.CopyTo(compressedDataStream);
+                                //compressedDataStream.ReadByte(_filePieces[currentPiecePos].PieceData);
+                                 //   new MemoryStream(_filePieces[currentPiecePos].PieceData);
+                                /*using var decompressor =
+                                    new GZipStream(compressedDataStream, CompressionMode.Decompress);*/
+                                using var clearDataStream = new MemoryStream();
+                                decompressor.CopyTo(clearDataStream);
+                                _filePieces[currentPiecePos].PieceData = clearDataStream.ToArray();
                             }
-
                         }
 
+                        _filePieces[currentPiecePos].AllowToWrite = true;
                     }
-                    FilePieces[currentPiecePos].AllowToWrite = true;
-                }
-                pos = pos + currentFile.PieceCount;
-            }
 
+                    pos = pos + currentFile.PieceCount;
+                }
+            }
         }
 
 
@@ -120,24 +144,44 @@ namespace RestoreV2
         {
             int pos = 0;
             int indexArrayCorrection = 1;
-            foreach (FileToWrite currentFile in FilesToWrite)
+            foreach (FileToWrite currentFile in _filesToWrite)
             {
-                while (currentFile.FileSize == 0) { Thread.Sleep(Params.TimeToWait); }; //ожидание заполения массива с файлами
+                while (currentFile.FileSize == 0)
+                {
+                    Thread.Sleep(Params.TimeToWait);
+                }
+
+                ; //ожидание заполения массива с файлами
                 currentFile.CreateFile(Params.FilesCreateDirectory + currentFile.ShortFileName);
                 for (int currentPiecePos = pos; currentPiecePos < currentFile.PieceCount + pos; currentPiecePos++)
                 {
-                    while (currentPiecePos > FilePieces.Count - indexArrayCorrection) { Thread.Sleep(Params.TimeToWait); } //кусочек несчитался 
-                    while (!FilePieces[currentPiecePos].AllowToWrite) { Thread.Sleep(Params.TimeToWait); } //кусочек недобработался 
-                    if (currentFile.Writer != null) { currentFile.Writer.Write(FilePieces[currentPiecePos].PieceData); }
-                    float pieceSize = FilePieces[currentPiecePos].PieceData.Length;
-                    FilePieces[currentPiecePos].PieceData = new byte[0]; // освобождение памяти?
-                    MemoryInUse = MemoryInUse - pieceSize / ByteToMB;
+                    while (currentPiecePos > _filePieces.Count - indexArrayCorrection)
+                    {
+                        Thread.Sleep(Params.TimeToWait);
+                    } //кусочек несчитался 
+
+                    while (!_filePieces[currentPiecePos].AllowToWrite)
+                    {
+                        Thread.Sleep(Params.TimeToWait);
+                    } //кусочек недобработался 
+
+                    if (currentFile.Writer != null)
+                    {
+                        currentFile.Writer.Write(_filePieces[currentPiecePos].PieceData);
+                    }
+
+                    float pieceSize = _filePieces[currentPiecePos].PieceData.Length;
+                    _filePieces[currentPiecePos].PieceData = new byte[0]; // освобождение памяти?
+                    MemoryInUse = MemoryInUse - StandartPieceSize / ByteToMB;
                 }
-                if (currentFile.Writer != null) { currentFile.Writer.Dispose(); }
+
+                if (currentFile.Writer != null)
+                {
+                    currentFile.Writer.Dispose();
+                }
 
                 pos = pos + currentFile.PieceCount;
             }
         }
-
     }
 }

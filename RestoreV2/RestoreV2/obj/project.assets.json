@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Uliana\\source\\repos\\RestoreV2\\RestoreV2\\RestoreV2.csproj",
+      "projectUniqueName": "C:\\Users\\Uliana\\Documents\\GitHub\\BackupAndRestore\\RestoreV2\\RestoreV2\\RestoreV2.csproj",
       "projectName": "RestoreV2",
-      "projectPath": "C:\\Users\\Uliana\\source\\repos\\RestoreV2\\RestoreV2\\RestoreV2.csproj",
+      "projectPath": "C:\\Users\\Uliana\\Documents\\GitHub\\BackupAndRestore\\RestoreV2\\RestoreV2\\RestoreV2.csproj",
       "packagesPath": "C:\\Users\\Uliana\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Uliana\\source\\repos\\RestoreV2\\RestoreV2\\obj\\",
+      "outputPath": "C:\\Users\\Uliana\\Documents\\GitHub\\BackupAndRestore\\RestoreV2\\RestoreV2\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Uliana\\AppData\\Roaming\\NuGet\\NuGet.Config",

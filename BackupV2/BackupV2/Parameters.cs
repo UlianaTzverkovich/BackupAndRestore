@@ -20,7 +20,6 @@ namespace BackupV2
         public int TimeToWait { get; set; } = 500; // время ожидания потоками ресурсов в мс
         public int MaxProcessingThreads { get; set; } = 6; // кол-во потоков на обработку данных
 
-
         string[] Params;
         public Parameters(string[] Params)
         {

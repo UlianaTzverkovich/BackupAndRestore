@@ -4,6 +4,7 @@ using BackupV2;
 try
 {
     Parameters parameters = new(args);
+    //parameters.
 
     EnumerationOptions enumerationOptions = new EnumerationOptions();
     enumerationOptions.RecurseSubdirectories = parameters.Recursive;

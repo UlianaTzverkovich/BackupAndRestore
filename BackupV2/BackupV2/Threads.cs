@@ -16,7 +16,6 @@ namespace BackupV2
         Writer.BackUpFile BackUpFile;
         Parameters Params;
 
-
         int StandartPieceSize;
         float MemoryInUse = 0;
         float ByteToMB = 1048576;
